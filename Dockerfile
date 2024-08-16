@@ -22,7 +22,7 @@ RUN wget -qO /usr/local/bin/ttyd https://github.com/tsl0922/ttyd/releases/downlo
 
 # Set up environment variables
 ENV DISPLAY=:1
-ENV PORT=8080
+ENV PORT=5005
 ENV USERNAME=admin
 ENV PASSWORD=admin
 
