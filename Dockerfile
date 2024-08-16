@@ -5,9 +5,6 @@ LABEL name="Photon OS x86_64/5.0 Base Image" \
     vendor="VMware" \
     build-date="20240811"
 
-CMD ["/bin/bash"]
-
-
 
 RUN apt-get update && \
     apt-get upgrade -y && \
