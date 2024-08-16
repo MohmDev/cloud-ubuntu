@@ -1,50 +1,48 @@
 # Use the Ubuntu base image
 FROM ubuntu:22.04
 
+# Set non-interactive mode for apt-get to avoid prompts
+ENV DEBIAN_FRONTEND=noninteractive
+
 # Install necessary packages
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && \
+    apt-get install -y \
     wget \
     xorg \
     openbox \
     xterm \
     tigervnc-standalone-server \
     tigervnc-common \
-    supervisor \
+    locales \
     && apt-get clean
 
-# Download and install ttyd
+# Set locale
+RUN locale-gen en_US.UTF-8
+ENV LANG=en_US.UTF-8
+ENV LANGUAGE=en_US:en
+ENV LC_ALL=en_US.UTF-8
+
+# Download and install VNC viewer
 RUN wget -qO /usr/local/bin/ttyd https://github.com/tsl0922/ttyd/releases/download/1.7.3/ttyd.x86_64 && \
     chmod +x /usr/local/bin/ttyd
 
 # Set up environment variables
 ENV DISPLAY=:1
-ENV PORT=6263
-ENV VNC_PORT=5901
+ENV PORT=8080
 ENV USERNAME=admin
 ENV PASSWORD=admin
 
-# Create a non-root user
-RUN useradd -m -s /bin/bash user
-USER user
-WORKDIR /home/user
+# Create a startup script for the VNC server
+RUN echo '#!/bin/bash\n\
+vncserver :1 -geometry 1280x720 -depth 24\n\
+openbox &\n\
+sleep 5\n\
+xterm\n\
+exec /usr/local/bin/ttyd -p $PORT -c $USERNAME:$PASSWORD /usr/bin/xterm' > /startup.sh && \
+    chmod +x /startup.sh
 
-# Create startup scripts
-RUN echo '#!/bin/bash\nvncserver :1 -geometry 1280x720 -depth 24 -localhost no' > /home/user/start_vnc.sh && \
-    echo '#!/bin/bash\nopenbox-session' > /home/user/start_openbox.sh && \
-    echo '#!/bin/bash\n/usr/local/bin/ttyd -p $PORT -c $USERNAME:$PASSWORD "vncviewer localhost:$VNC_PORT"' > /home/user/start_ttyd.sh && \
-    chmod +x /home/user/start_vnc.sh /home/user/start_openbox.sh /home/user/start_ttyd.sh
+# Expose the port for the web interface
+EXPOSE $PORT
 
-# Switch back to root to set up supervisor
-USER root
-
-# Set up supervisor configuration
-RUN echo '[supervisord]\nnodaemon=true\n\n\
-[program:vnc]\ncommand=/home/user/start_vnc.sh\nuser=user\n\n\
-[program:openbox]\ncommand=/home/user/start_openbox.sh\nuser=user\n\n\
-[program:ttyd]\ncommand=/home/user/start_ttyd.sh\nuser=user' > /etc/supervisor/conf.d/supervisord.conf
-
-# Expose the ports for VNC and ttyd
-EXPOSE $PORT $VNC_PORT
-
-# Start supervisor
-CMD ["/usr/bin/supervisord"]
+# Start the VNC server and the ttyd service
+CMD ["/bin/bash", "/startup.sh"]
