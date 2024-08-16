@@ -8,6 +8,10 @@ RUN apt-get update && \
     xorg \
     openbox \
     xterm \
+    && apt-get clean
+
+# Install and configure a web-based VNC server
+RUN apt-get install -y \
     tigervnc-standalone-server \
     tigervnc-common \
     && apt-get clean
@@ -26,7 +30,6 @@ ENV PASSWORD=admin
 RUN echo '#!/bin/bash\n\
 vncserver :1 -geometry 1280x720 -depth 24\n\
 openbox &\n\
-sleep 5\n\
 xterm\n\
 exec /usr/local/bin/ttyd -p $PORT -c $USERNAME:$PASSWORD /usr/bin/xterm' > /startup.sh && \
     chmod +x /startup.sh
