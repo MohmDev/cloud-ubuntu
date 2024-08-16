@@ -1,4 +1,3 @@
-# Claude
 # Use the Ubuntu base image
 FROM ubuntu:22.04
 
@@ -51,4 +50,4 @@ RUN echo '[supervisord]\nnodaemon=true\n\n\
 EXPOSE $PORT $VNC_PORT
 
 # Start supervisor
-CMD ["/usr/bin/supervisord"]
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
