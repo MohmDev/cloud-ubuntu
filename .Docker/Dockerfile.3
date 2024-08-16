@@ -2,6 +2,9 @@
 # Use the Ubuntu base image
 FROM ubuntu:22.04
 
+# Set non-interactive mode for apt-get to avoid prompts
+ENV DEBIAN_FRONTEND=noninteractive
+
 # Install necessary packages
 RUN apt-get update && apt-get install -y \
     wget \
